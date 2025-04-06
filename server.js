@@ -10,7 +10,6 @@ app.set("views", "views");
 app.set("view engine", "pug");
 
 app.get("/", function(req, res) {
-    run().catch(console.dir);
     res.render("home");
 });
 
@@ -21,15 +20,15 @@ app.listen(3018, function() {
 const uri = process.env.CONNECTION_STRING;
 const client = new MongoClient(uri);
 
-async function run() {
+app.get("/query", async function(req, res) {
     try {
         const database = client.db('test');
         const col = database.collection('TEST');
-        const query = { Name: 'John Marshall' };
+        const query = { Name: req.query.Name };
         const doc = await col.findOne(query);
-        console.log(doc);
+        res.send(doc);
     } finally {
         // Ensures that the client will close when you finish/error
         await client.close();
     }
-}
+});
