@@ -17,16 +17,25 @@ app.listen(3018, function() {
     console.log("Listening on port 3018...");
 });
 
-const uri = process.env.CONNECTION_STRING;
+const uri = 'mongodb://localhost:27017';
 const client = new MongoClient(uri);
 
 app.get("/query", async function(req, res) {
+    let query = {};
+    if(req.query.country) {
+        query.country = req.query.country;
+    }
+    if(req.query.rank) {
+        query.rank = parseInt(req.query.rank);
+    }
+    console.log(query);
     try {
-        const database = client.db('test');
-        const col = database.collection('TEST');
-        const query = { Name: req.query.Name };
-        const doc = await col.findOne(query);
-        res.send(doc);
+        await client.connect();
+        const database = client.db('countries');
+        const countries = database.collection('COUNTRIES');
+        const result = await countries.findOne(query, {projection: { _id: 0, country: 1, rank: 1, pop2023: 1, area: 1 }});
+        console.log(result);
+        res.send(result);
     } finally {
         // Ensures that the client will close when you finish/error
         await client.close();
